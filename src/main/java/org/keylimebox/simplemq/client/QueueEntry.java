@@ -9,9 +9,13 @@ package org.keylimebox.simplemq.client;
 /*                                       Imports                                        */
 /*======================================================================================*/
 
+import java.io.IOException;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /*======================================================================================*/
 /*                           Class Definition / Implementation                          */
@@ -92,7 +96,7 @@ public class QueueEntry
                  * The message's payload.
                  */
                 /*======================================================================*/
-   private Object             payload;
+   private String             payload;
 
     /*==================================================================================*/
     /* Class Attributes                                                                 */
@@ -190,16 +194,36 @@ public class QueueEntry
    }
 
          /*=============================================================================*/
-         /* OPERATION:   getPayload                                            */
+         /* OPERATION:   getPayload                                                     */
          /**
           * Returns the payload of the message.
           * <p>
           * @since Dec 31, 2014
           */
          /*=============================================================================*/
-   public Object getPayload ()
+   public String getPayload ()
    {
       return (payload);
+   }
+
+         /*=============================================================================*/
+         /* OPERATION:   getPayload                                                     */
+         /**
+          * Returns the payload as an object.
+          * <p>
+          * @param aType
+          * @return
+          * @throws JsonParseException
+          * @throws JsonMappingException
+          * @throws IOException
+          * <p>
+          * @since Dec 31, 2014
+          */
+         /*=============================================================================*/
+   @SuppressWarnings ({ "rawtypes", "unchecked" })
+   public Object getPayload (Class aType) throws JsonParseException, JsonMappingException, IOException
+   {
+      return new ObjectMapper ().readValue (getPayload (), aType);
    }
 
 
@@ -211,7 +235,7 @@ public class QueueEntry
 
 
          /*=============================================================================*/
-         /* OPERATION:   setId                                            */
+         /* OPERATION:   setId                                                          */
          /**
           * Sets the ID of the message.
           * <p>
@@ -283,7 +307,7 @@ public class QueueEntry
           * @since Dec 31, 2014
           */
          /*=============================================================================*/
-   public void setPayload (Object aPayload)
+   public void setPayload (String aPayload)
    {
       payload = aPayload;
    }

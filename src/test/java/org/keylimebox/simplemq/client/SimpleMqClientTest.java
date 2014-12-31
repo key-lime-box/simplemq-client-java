@@ -5,7 +5,11 @@
 
 package org.keylimebox.simplemq.client;
 
+import java.io.IOException;
 import java.util.Iterator;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /*======================================================================================*/
 /*                                       Imports                                        */
@@ -114,7 +118,18 @@ public class SimpleMqClientTest
       Iterator<QueueEntry> myIterator = myClient.queueIterator ("54a44f9c68376ebe87d3e707");
       while (myIterator.hasNext ()) {
          QueueEntry myMessage = myIterator.next ();
-         System.out.println (myMessage.getPayload ().toString ());
+//         System.out.println (myMessage.getPayload ().toString ());
+         try {
+            Object myPayload = myMessage.getPayload (DummyObject.class);
+            System.out.println (myPayload.toString ());
+         } catch (JsonParseException myException) {
+            myException.printStackTrace();
+         } catch (JsonMappingException myException) {
+            myException.printStackTrace();
+         } catch (IOException myException) {
+            myException.printStackTrace();
+         }
+
       }
 
    }
