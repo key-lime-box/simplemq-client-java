@@ -9,7 +9,7 @@ package org.keylimebox.simplemq.client;
 /*                                       Imports                                        */
 /*======================================================================================*/
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /*======================================================================================*/
@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
  */
 /*======================================================================================*/
 @SuppressWarnings ("nls")
-@ConfigurationProperties(prefix="keylimebox.simplemq")
 @Component
 public class SimpleMqClientConfig
 {
@@ -56,6 +55,7 @@ public class SimpleMqClientConfig
                  * The URL to the Simple MQ server (e.g. <code>http://simplemq.keylimebox.org</code>).
                  */
                 /*======================================================================*/
+   @Value ("${keylimebox.simplemq.url}")
    private String                   url;
 
                 /*======================================================================*/
@@ -64,6 +64,7 @@ public class SimpleMqClientConfig
                  * The Subscriber ID for this application (if it is going to read from queues).
                  */
                 /*======================================================================*/
+   @Value ("${keylimebox.simplemq.subscriberId}")
    private String                   subscriberId;
 
                 /*======================================================================*/
@@ -72,6 +73,7 @@ public class SimpleMqClientConfig
                  * The Publisher ID for this application (if it is going to publish to queues).
                  */
                 /*======================================================================*/
+   @Value ("${keylimebox.simplemq.publisherId}")
    private String                   publisherId;
 
     /*==================================================================================*/
