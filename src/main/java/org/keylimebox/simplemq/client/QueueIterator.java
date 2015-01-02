@@ -14,6 +14,27 @@ import java.util.Iterator;
 /*======================================================================================*/
 /*                           Class Definition / Implementation                          */
 /*======================================================================================*/
+/*======================================================================================*/
+/* CLASS:       QueueIterator                                                           */
+/**
+ * Enables users to process the elements in the Message Queue just like when using a Set
+ * Iterator.
+ * <p>
+ * The <code>QueueIterator</code> provides elements from the message queue until there are
+ * no more elements in the queue.
+ * <p>
+ * The iterator is disconnected (doing REST web service calls) and thus is not bound to a
+ * fixed set of elements but rather queries the queue for new elements at each call to the
+ * <code>hasNext()</code> method.
+ * <p>
+ * The iterator is therefore essentially unbound. It will returns all messages that were
+ * added to the queue while it is being iterated. <code>hasNext()</code> will return false
+ * if at the moment of the call to the method, there are no more messages in the queue.
+ * <p>
+ * @author      etlweather
+ * @since       Jan 2, 2015
+ */
+/*======================================================================================*/
 @SuppressWarnings ("nls")
 public class QueueIterator implements Iterator<QueueEntry>
 {
