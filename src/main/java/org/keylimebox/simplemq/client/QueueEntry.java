@@ -220,8 +220,7 @@ public class QueueEntry
           * @since Dec 31, 2014
           */
          /*=============================================================================*/
-   @SuppressWarnings ({ "rawtypes", "unchecked" })
-   public Object getPayload (Class aType) throws JsonParseException, JsonMappingException, IOException
+   public <T> T getPayload (Class<T> aType) throws JsonParseException, JsonMappingException, IOException
    {
       return new ObjectMapper ().readValue (getPayload (), aType);
    }
