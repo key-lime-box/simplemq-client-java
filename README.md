@@ -47,5 +47,12 @@ while (myIterator.hasNext ()) {
 }
 ```
 
+### Consuming Multiple Queues as One
+
+There may be scenarios where you want to consume the messages of multiple queues in one
+iteration. This can be done by passing more than one Queue ID to the `queueIterator` 
+method of `SimpleMqClient`.
+
+
 
  

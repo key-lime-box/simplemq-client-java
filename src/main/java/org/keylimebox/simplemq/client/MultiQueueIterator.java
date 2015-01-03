@@ -9,33 +9,25 @@ package org.keylimebox.simplemq.client;
 /*                                       Imports                                        */
 /*======================================================================================*/
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
 
 /*======================================================================================*/
 /*                           Class Definition / Implementation                          */
 /*======================================================================================*/
 /*======================================================================================*/
-/* CLASS:       SimpleMqClient                                                          */
+/* CLASS:       MultiQueueIterator                                                      */
 /**
- * A client to the Key Lime Box's Simple MQ server. The Simple MQ Client is a Spring
- * service. It is configured automatically through <code>SimpleMqClientConfig</code>.
+ * A queue iterator which works just like the {@link QueueIterator}, but provides a simple
+ * way to process messages from multiple queues as one. In other words, it will empty out
+ * each of the queues specified one after the other.
  * <p>
  * @author      etlweather
- * @since       Dec 31, 2014
+ * @since       Jan 2, 2015
  */
 /*======================================================================================*/
 @SuppressWarnings ("nls")
-@Service
-public class SimpleMqClient
+public class MultiQueueIterator implements Iterator<QueueEntry>
 {
-
     /*==================================================================================*/
     /*===================================            ===================================*/
     /*=================================== Attributes ===================================*/
@@ -51,21 +43,20 @@ public class SimpleMqClient
     /*==================================================================================*/
 
                 /*======================================================================*/
-                /* ATTRIBUTE: restTemplate                                              */
+                /* ATTRIBUTE: iterators                                                 */
                 /**
-                 * The rest remplate used to interact with the server.
+                 * Internal iterators for each queue.
                  */
                 /*======================================================================*/
-   private RestTemplate                rest = new RestTemplate ();
+   private QueueIterator[]          iterators;
 
                 /*======================================================================*/
-                /* ATTRIBUTE: config                                                    */
+                /* ATTRIBUTE: currentIdx                                                */
                 /**
-                 * The configuration.
+                 * IDX of the current iterator.
                  */
                 /*======================================================================*/
-   @Autowired
-   private SimpleMqClientConfig        config;
+   private int                      currentIdx;
 
     /*==================================================================================*/
     /* Class Attributes                                                                 */
@@ -92,6 +83,31 @@ public class SimpleMqClient
     /* Constructors                                                                     */
     /*==================================================================================*/
 
+        /*==============================================================================*/
+        /* OPERATION:   QueueIterator                                                   */
+        /**
+         * The constructor for this class.
+         *
+         * <p>
+         * @param aQueueIds
+         *           The IDs of the queues this iterator is for.
+         * <p>
+         * @since 2-Jan-2015.
+         */
+        /*==============================================================================*/
+   MultiQueueIterator (String[] aQueueIds, SimpleMqClient aClient)
+   {
+      if (aQueueIds.length == 0) {
+         throw new IllegalArgumentException ("You must supply at least one Queue ID!");
+      }
+
+      iterators = new QueueIterator[aQueueIds.length];
+      for (int i = 0; i < aQueueIds.length; i++) {
+         iterators[i] = new QueueIterator (aQueueIds[i], aClient);
+      }
+      currentIdx = 0;
+   }
+
     /*==================================================================================*/
     /* Attribute Get Operations                                                         */
     /*==================================================================================*/
@@ -99,11 +115,6 @@ public class SimpleMqClient
     /*==================================================================================*/
     /* Attribute Set Operations                                                         */
     /*==================================================================================*/
-
-   void setConfig (SimpleMqClientConfig aConfig)
-   {
-      config = aConfig;
-   }
 
     /*==================================================================================*/
     /* Private Operations                                                               */
@@ -122,95 +133,68 @@ public class SimpleMqClient
     /*==================================================================================*/
 
          /*=============================================================================*/
-         /* OPERATION:   publish                                                        */
+         /* OPERATION:   hasNext                                                        */
          /**
-          * Publish a message to a queue.
+          * Checks if there are more items in the queue and collects the next item ready
+          * for processing. It also deletes the previous item from the queue.
+          *
+          * @return true if there are more items to be processed.
           * <p>
-          * @param aQueueId
-          *          The ID of the queue to publish to.
-          *
-          * @param aPayload
-          *          The payload to put into the message.
-          *
+          * @see java.util.Iterator#hasNext()
           * <p>
           * @since Dec 31, 2014
           */
          /*=============================================================================*/
-   public void publish (String aQueueId, Object aPayload)
+   @Override
+   public boolean hasNext ()
    {
-      Map<String, String> myParams = new HashMap<String, String> ();
-      myParams.put ("publisherId", config.getPublisherId ());
-      myParams.put ("queueId", aQueueId);
-      rest.postForLocation (config.getPublishUrl (), aPayload, myParams);
+      if (iterators[currentIdx].hasNext ()) {
+         return true;
+      }
+      else {
+         currentIdx++;
+         if (currentIdx >= iterators.length) {
+            return false;
+         }
+         else {
+            return hasNext ();
+         }
+      }
    }
-
-
-
-
 
          /*=============================================================================*/
          /* OPERATION:   next                                                           */
          /**
-          * Calls the next method on the queue to get the next message and optionally
-          * delete first the one that was just handled.
+          * Returns the next item from the queue.
+          *
+          * @return the item.
           * <p>
-          * @param aQueueId
-          * @param aPreviousId
-          * @return
+          * @see java.util.Iterator#next()
           * <p>
           * @since Dec 31, 2014
           */
          /*=============================================================================*/
-   public QueueEntry next (String aQueueId, String aPreviousId)
+   @Override
+   public QueueEntry next ()
    {
-
-      Map<String, String> myParams = new HashMap<String, String> ();
-
-      myParams.put ("subscriberId", config.getSubscriberId ());
-      myParams.put ("queueId",      aQueueId);
-      myParams.put ("previousId",   aPreviousId);
-
-
-      return rest.getForObject (config.getNextUrl (), QueueEntry.class, myParams);
+      return iterators[currentIdx].next ();
    }
 
          /*=============================================================================*/
-         /* OPERATION:   queueIterator                                                  */
+         /* OPERATION:   remove                                                         */
          /**
-          * Gets an iterator for processing a given queue.
+          * Not supported.
           * <p>
-          * @param aQueueId
-          *          The ID of the queue to process.
-          *
-          * @return The iterator.
+          * @see java.util.Iterator#remove()
           * <p>
           * @since Dec 31, 2014
           */
          /*=============================================================================*/
-   public Iterator<QueueEntry> queueIterator (String aQueueId)
+   @Override
+   public void remove ()
    {
-      return new QueueIterator (aQueueId, this);
+      iterators[currentIdx].remove ();;
    }
-
-
-         /*=============================================================================*/
-         /* OPERATION:   multiQueueIterator                                            */
-         /**
-          * Gets an iterator for pocessing multiple queues as one.
-          * <p>
-          * @param aQueueIds
-          *          The ID of the queues to be processed.
-          *
-          * @return the iterator.
-          * <p>
-          * @since Jan 2, 2015
-          */
-         /*=============================================================================*/
-   public Iterator<QueueEntry> queueIterator (String ... aQueueIds)
-   {
-      return new MultiQueueIterator (aQueueIds, this);
-   }
-
 
 
     /*==================================================================================*/
@@ -226,4 +210,4 @@ public class SimpleMqClient
     /*==================================================================================*/
 }
 
-// EOF  SimpleMqClient.java
+// EOF  QueueIterator.java
