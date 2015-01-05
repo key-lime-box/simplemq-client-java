@@ -169,7 +169,6 @@ public class SimpleMqClient
             for (int i = 1; i <= 100; i ++) {
                try {
                   ResponseEntity<String> myResponse = rest.postForEntity (config.getPublishUrl (), aPayload, String.class, myParams);
-                  System.out.println ("Published " + aPayload.toString ());
                   if (myResponse.getStatusCode ().is2xxSuccessful ()) {
                      return;
                   }
