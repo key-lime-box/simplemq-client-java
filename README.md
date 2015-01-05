@@ -27,9 +27,8 @@ Here is an example on how to publish a message to a queue:
 simpleMqClient.publish (myQueueId, myPayload);
 ```
 
-*Note:* The current version does not retry if the client is not able to connect to the
-server. A future version will keep retrying on a separate thread. Additionally, the 
-current implementation will hold execution until the message is published.
+Alternatively, the `publishInSequence` method can be used to ensure that the messages
+are going to be saved in the queue in the sequence they are published.
 
 ## Consuming a Queue
 
