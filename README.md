@@ -30,6 +30,8 @@ simpleMqClient.publish (myQueueId, myPayload);
 Alternatively, the `publishInSequence` method can be used to ensure that the messages
 are going to be saved in the queue in the sequence they are published.
 
+
+
 ## Consuming a Queue
 
 The API for consuming queues is based on the `Iterator` (factually, the `Simple MQ` 
